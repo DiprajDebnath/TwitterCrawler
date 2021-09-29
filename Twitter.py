@@ -1,3 +1,4 @@
+#Gets followers list and converts to csv using pandas
 import requests
 import os
 import json
