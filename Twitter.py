@@ -1,23 +1,22 @@
 import requests
 import os
 import json
+import pandas as pd
 
-# To set your enviornment variables in your terminal run the following line:
+# To set your environment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
 bearer_token = os.environ.get("BEARER_TOKEN")
 
 
 def create_url():
-    # Specify the usernames that you want to lookup below
-    # You can enter up to 100 comma-separated values.
-    usernames = "usernames=TwitterDev,TwitterAPI,DebnathDipraj"
-    user_fields = "user.fields=description,created_at,id,name,profile_image_url"
-    # User fields are adjustable, options include:
-    # created_at, description, entities, id, location, name,
-    # pinned_tweet_id, profile_image_url, protected,
-    # public_metrics, url, username, verified, and withheld
-    url = "https://api.twitter.com/2/users/by?{}&{}".format(usernames, user_fields)
-    return url
+    # Replace with user ID below
+    user_id = 101695592
+    return "https://api.twitter.com/2/users/{}/followers".format(user_id)
+
+
+def get_params():
+    return {"user.fields": "created_at,public_metrics",
+    "max_results": "499"}
 
 
 def bearer_oauth(r):
@@ -26,12 +25,12 @@ def bearer_oauth(r):
     """
 
     r.headers["Authorization"] = f"Bearer {bearer_token}"
-    r.headers["User-Agent"] = "v2UserLookupPython"
+    r.headers["User-Agent"] = "v2FollowersLookupPython"
     return r
 
 
-def connect_to_endpoint(url):
-    response = requests.request("GET", url, auth=bearer_oauth,)
+def connect_to_endpoint(url, params):
+    response = requests.request("GET", url, auth=bearer_oauth, params=params)
     print(response.status_code)
     if response.status_code != 200:
         raise Exception(
@@ -44,8 +43,11 @@ def connect_to_endpoint(url):
 
 def main():
     url = create_url()
-    json_response = connect_to_endpoint(url)
+    params = get_params()
+    json_response = connect_to_endpoint(url, params)
     print(json.dumps(json_response, indent=4, sort_keys=True))
+    df = pd.DataFrame(json_response['data'])
+    df.to_csv('response_python.csv')
 
 
 if __name__ == "__main__":
